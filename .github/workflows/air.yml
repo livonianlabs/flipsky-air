@@ -1,0 +1,29 @@
+name: air
+on:
+  schedule:
+    - cron: '40 10 * * *'
+    - cron: '40 16 * * *'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  tiles:
+    runs-on: ubuntu-latest
+    timeout-minutes: 150
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install cdsapi netCDF4 numpy
+      - run: python cams_tiles.py site
+        env:
+          ADS_KEY: ${{ secrets.ADS_KEY }}
+      - name: Publish
+        run: |
+          cd site
+          touch .nojekyll
+          git init -q -b gh-pages
+          git add -A
+          git -c user.name="Livonian Labs" -c user.email="livonianlabs@gmail.com" commit -q -m "Air quality $(date -u +%F)"
+          git push -q -f "https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}" gh-pages
