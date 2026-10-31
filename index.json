@@ -1,0 +1,11 @@
+{
+ "base": 498168,
+ "hours": 73,
+ "south": 30.049999237060547,
+ "north": 71.94999694824219,
+ "west": -24.95001220703125,
+ "east": 44.95000076293945,
+ "step": 0.1,
+ "tiles": 2940,
+ "source": "Contains modified Copernicus Atmosphere Monitoring Service information 2026"
+}
