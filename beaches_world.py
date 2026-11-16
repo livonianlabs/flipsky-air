@@ -1,4 +1,5 @@
-"""The world's named beaches from OpenStreetMap (via Overture Maps' base theme, land class "beach"), merged into the
+"""The world's named beaches and beach resorts from OpenStreetMap (via Overture Maps' base theme: land class
+"beach", land use class "beach_resort"), merged into the
 bathing places' tiles that beaches.py writes from the EU register.
 
 usage: beaches_world.py <beaches dir> [--csv world_beaches.csv] [--release 2026-10-21.0]
@@ -22,9 +23,18 @@ def query(release, out):
     con = duckdb.connect()
     con.execute("INSTALL httpfs; LOAD httpfs; SET s3_region='us-west-2'; SET enable_progress_bar=false;")
     u = f's3://overturemaps-us-west-2/release/{release}/theme=base/type=land/*.parquet'
-    con.execute(f"""COPY (SELECT names.primary AS name, names.common['en'] AS en,
-        round((bbox.ymin+bbox.ymax)/2, 5) AS lat, round((bbox.xmin+bbox.xmax)/2, 5) AS lon
-        FROM read_parquet('{u}') WHERE class='beach' AND names.primary IS NOT NULL) TO '{out}' (HEADER, DELIMITER ',')""")
+    cols = """names.primary AS name, names.common['en'] AS en,
+        round((bbox.ymin+bbox.ymax)/2, 5) AS lat, round((bbox.xmin+bbox.xmax)/2, 5) AS lon"""
+    beaches = f"SELECT {cols} FROM read_parquet('{u}') WHERE class='beach' AND names.primary IS NOT NULL"
+    # Beach resorts (OpenStreetMap's leisure=beach_resort): whole coasts are mapped only so, Egypt's north coast and the
+    # Red Sea's among them. Only those by the sea stay in the app (a resort without the sea within a few km drops out).
+    r = f's3://overturemaps-us-west-2/release/{release}/theme=base/type=land_use/*.parquet'
+    resorts = f"SELECT {cols} FROM read_parquet('{r}') WHERE class='beach_resort' AND names.primary IS NOT NULL"
+    try:
+        con.execute(f"COPY ({beaches} UNION ALL {resorts}) TO '{out}' (HEADER, DELIMITER ',')")
+    except Exception as e:
+        print('no beach resorts:', e)
+        con.execute(f"COPY ({beaches}) TO '{out}' (HEADER, DELIMITER ',')")
 
 
 def km(a, b, c, d):
