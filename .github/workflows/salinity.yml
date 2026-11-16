@@ -1,4 +1,5 @@
-# By hand, about once a year: the sea's mean salinity (salinity.py), committed to salinity/ for the daily job to publish.
+# By hand, about once a year: the sea's mean salinity (salinity.py) and its usual temperature by month (sea_climate.py),
+# committed to salinity/ and seaclimate/ for the daily job to publish.
 name: salinity
 on:
   workflow_dispatch:
@@ -7,7 +8,7 @@ permissions:
 jobs:
   salinity:
     runs-on: ubuntu-latest
-    timeout-minutes: 90
+    timeout-minutes: 240
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -18,8 +19,12 @@ jobs:
         env:
           CMEMS_USER: ${{ secrets.CMEMS_USER }}
           CMEMS_PASS: ${{ secrets.CMEMS_PASS }}
+      - run: rm -rf seaclimate && python sea_climate.py seaclimate
+        env:
+          CMEMS_USER: ${{ secrets.CMEMS_USER }}
+          CMEMS_PASS: ${{ secrets.CMEMS_PASS }}
       - name: Commit
         run: |
-          git add -A salinity
+          git add -A salinity seaclimate
           git -c user.name="Livonian Labs" -c user.email="livonianlabs@gmail.com" commit -q -m "Sea salinity $(date -u +%F)" || echo "no change"
           git push -q
