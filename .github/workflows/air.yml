@@ -19,6 +19,8 @@ jobs:
       - run: python cams_tiles.py site
         env:
           ADS_KEY: ${{ secrets.ADS_KEY }}
+      # The bathing places (beaches.py, refreshed by hand once a year) go out beside the tiles.
+      - run: cp -r beaches site/b
       - name: Publish
         run: |
           cd site

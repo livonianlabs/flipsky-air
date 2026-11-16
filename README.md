@@ -9,3 +9,11 @@ Twice a day a GitHub Action takes the latest 00 UTC run of the **CAMS European a
 Contains modified Copernicus Atmosphere Monitoring Service information (CC-BY 4.0).
 Neither the European Commission nor ECMWF is responsible for any use that may be made of the
 Copernicus information or data it contains.
+
+## Pollen and bathing places
+
+The same job cuts the CAMS pollen forecast (alder, birch, grasses, mugwort, olive, ragweed) into `p/<lat>_<lon>.bin.gz`.
+
+`b/<lat>_<lon>.json` lists the EU's bathing places (name, position, kind of water, water quality class) from the
+Bathing Water Directive register: European Environment Agency data via EMODnet Human Activities (CC BY 4.0).
+`beaches.py` rebuilds them; run it by hand once a year and commit `beaches/`.
