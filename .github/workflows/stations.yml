@@ -1,0 +1,23 @@
+# By hand, about once a year: weather stations' normals by half-month (stations.py, NOAA GHCN-Daily, public domain),
+# committed to stations/ for the daily job to publish; the trips' climate on coasts and islands.
+name: stations
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  stations:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install pandas numpy
+      - run: rm -rf stations && python stations.py stations
+      - name: Commit
+        run: |
+          git add -A stations
+          git -c user.name="Livonian Labs" -c user.email="livonianlabs@gmail.com" commit -q -m "Station normals $(date -u +%F)" || echo "no change"
+          git push -q
