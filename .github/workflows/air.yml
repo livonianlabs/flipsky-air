@@ -19,6 +19,11 @@ jobs:
       - run: python cams_tiles.py site
         env:
           ADS_KEY: ${{ secrets.ADS_KEY }}
+      # The rest of the world's air (CAMS global): its own step, so a failure there leaves Europe's alone.
+      - run: python global_air.py site
+        continue-on-error: true
+        env:
+          ADS_KEY: ${{ secrets.ADS_KEY }}
       # The sea's temperature (Copernicus Marine): skipped until the account's secrets are set.
       - run: pip install copernicusmarine && python sea_tiles.py site
         env:

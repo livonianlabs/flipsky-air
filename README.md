@@ -23,3 +23,8 @@ Bathing Water Directive register: European Environment Agency data via EMODnet H
 `sea_tiles.py` cuts the Copernicus Marine global (about 9 km) and Baltic (about 2 km) sea temperature forecasts, today and
 9 days ahead, into `s/` (5° tiles) and `sb/` (1° tiles). It needs the `CMEMS_USER` and `CMEMS_PASS` secrets (a free
 Copernicus Marine account) and is skipped without them. Generated using E.U. Copernicus Marine Service Information.
+
+## The rest of the world's air
+
+`global_air.py` cuts the CAMS global atmospheric composition forecast (about 0.4°, every 3 hours, 0-72 h) into `ga/`
+(5° tiles, format version 2 in the script). The app uses them where the European tiles have nothing.
