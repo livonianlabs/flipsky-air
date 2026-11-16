@@ -28,3 +28,8 @@ Copernicus Marine account) and is skipped without them. Generated using E.U. Cop
 
 `global_air.py` cuts the CAMS global atmospheric composition forecast (about 0.4°, every 3 hours, 0-72 h) into `ga/`
 (5° tiles, format version 2 in the script). The app uses them where the European tiles have nothing.
+
+## The chance of rain worldwide
+
+`ecmwf_rain.py` takes ECMWF's open ensemble probabilities (tpg1: at least 1 mm in 24 hours, 10 days, 0.25°) by byte
+ranges and cuts them into `rp/` (5° tiles). Source: ECMWF open data, CC BY 4.0.
