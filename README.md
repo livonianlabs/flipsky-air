@@ -43,3 +43,13 @@ and cuts it into `gu/` (5° tiles). Source: ECMWF open data, CC BY 4.0.
 
 `beaches_world.py` adds the world's named beaches from OpenStreetMap (via Overture Maps' base theme) to `beaches/`,
 after `beaches.py`: about 37,000 outside the EU register. Beaches © OpenStreetMap contributors (ODbL), via Overture Maps.
+
+## Licences of the published data
+
+- `b/` (bathing places): the EU register's part is EEA data via EMODnet (CC BY 4.0); the beaches from OpenStreetMap
+  form a database derived from OpenStreetMap and are made available under the Open Database License (ODbL 1.0),
+  © OpenStreetMap contributors, via Overture Maps.
+- `t/`, `p/`, `ga/`: Contains modified Copernicus Atmosphere Monitoring Service information.
+- `s/`, `sb/`, `sal/`, `sc/`: Generated using E.U. Copernicus Marine Service Information.
+- `rp/`, `gu/`: ECMWF open data, CC BY 4.0.
+- `st/`: NOAA GHCN-Daily, public domain.
