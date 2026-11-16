@@ -47,8 +47,8 @@ def main():
     with zipfile.ZipFile(path) as z:
         z.extractall(d)
     shp = glob.glob(os.path.join(d, '**', '*.shp'), recursive=True)[0]
-    geoms = pyogrio.read_dataframe(shp, columns=[]).geometry.values
-    geoms = np.asarray(shapely.from_wkb(shapely.to_wkb(geoms)))
+    # Raw reading: the geometries as WKB, no geopandas needed.
+    geoms = np.asarray(shapely.from_wkb(pyogrio.raw.read(shp, columns=[])[2]))
     tree = shapely.STRtree(geoms)
     print('land polygons', len(geoms), flush=True)
     steps = np.arange(STEP_KM, REACH_KM + STEP_KM / 2, STEP_KM)
