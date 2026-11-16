@@ -41,6 +41,8 @@ def nice(name):
     n = quoted[-1] if quoted else name
     # "Baltijas jūra, Ainaži": the sea's name before the place's.
     n = n.split(',')[-1].strip() or n.strip()
+    # Spain's codes ("Playa Bobo (el) Pm3"): not part of the name.
+    n = re.sub(r'\s+P[mM]\d+$', '', n)
     if n.isupper():
         n = ' '.join(w[:1] + w[1:].lower() for w in n.split(' '))
         n = re.sub(r'-(\w)', lambda m: '-' + m.group(1).upper(), n)

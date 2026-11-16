@@ -13,6 +13,7 @@ import csv
 import json
 import math
 import os
+import re
 import sys
 
 
@@ -56,6 +57,9 @@ def main():
         near = False
         for r in here:
             d = km(lat, lon, r[1], r[2])
+            # A register name the source mangled ("Playa Fa?ab?"): OpenStreetMap's name for the same place (within 1 km).
+            if r[3] != 'o' and '?' in r[0] and d < 1:
+                r[0] = name
             if (r[3] != 'o' and d < 1) or (r[3] == 'o' and r[0] == name and d < 2):
                 near = True
                 break
@@ -63,6 +67,16 @@ def main():
             continue
         here.append([name, round(lat, 5), round(lon, 5), 'o', 0, en if en != name else ''])
         added += 1
+    # Names still mangled: a part in brackets dropped ("Playa Troya Ii (am?ricas Ii)"), else the place left out.
+    for k, v in tiles.items():
+        kept = []
+        for r in v:
+            if '?' in r[0]:
+                r[0] = re.sub(r'\s*\([^)]*\?[^)]*\)', '', r[0]).strip()
+                if '?' in r[0] or not r[0]:
+                    continue
+            kept.append(r)
+        tiles[k] = kept
     for k, v in tiles.items():
         if v:
             with open(os.path.join(folder, k + '.json'), 'w', encoding='utf-8') as f:
