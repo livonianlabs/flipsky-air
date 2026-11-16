@@ -1,0 +1,25 @@
+# By hand, about once a year: the sea's mean salinity (salinity.py), committed to salinity/ for the daily job to publish.
+name: salinity
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  salinity:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install copernicusmarine netCDF4 numpy
+      - run: rm -rf salinity && python salinity.py salinity
+        env:
+          CMEMS_USER: ${{ secrets.CMEMS_USER }}
+          CMEMS_PASS: ${{ secrets.CMEMS_PASS }}
+      - name: Commit
+        run: |
+          git add -A salinity
+          git -c user.name="Livonian Labs" -c user.email="livonianlabs@gmail.com" commit -q -m "Sea salinity $(date -u +%F)" || echo "no change"
+          git push -q

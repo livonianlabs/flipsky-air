@@ -25,7 +25,7 @@ jobs:
           CMEMS_USER: ${{ secrets.CMEMS_USER }}
           CMEMS_PASS: ${{ secrets.CMEMS_PASS }}
       # The bathing places (beaches.py, refreshed by hand once a year) go out beside the tiles.
-      - run: cp -r beaches site/b
+      - run: cp -r beaches site/b && if [ -d salinity ]; then cp -r salinity site/sal; fi
       - name: Publish
         run: |
           cd site
