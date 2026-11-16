@@ -17,3 +17,9 @@ The same job cuts the CAMS pollen forecast (alder, birch, grasses, mugwort, oliv
 `b/<lat>_<lon>.json` lists the EU's bathing places (name, position, kind of water, water quality class) from the
 Bathing Water Directive register: European Environment Agency data via EMODnet Human Activities (CC BY 4.0).
 `beaches.py` rebuilds them; run it by hand once a year and commit `beaches/`.
+
+## Sea temperature
+
+`sea_tiles.py` cuts the Copernicus Marine global (about 9 km) and Baltic (about 2 km) sea temperature forecasts, today and
+9 days ahead, into `s/` (5° tiles) and `sb/` (1° tiles). It needs the `CMEMS_USER` and `CMEMS_PASS` secrets (a free
+Copernicus Marine account) and is skipped without them. Generated using E.U. Copernicus Marine Service Information.
