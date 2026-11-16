@@ -25,10 +25,28 @@ import tempfile
 import numpy as np
 
 SETS = [
-    # dataset, folder, tile size (degrees)
-    ('cmems_mod_glo_phy-thetao_anfc_0.083deg_P1D-m', 's', 5),
-    ('cmems_mod_bal_phy_anfc_P1D-m', 'sb', 1),
+    # dataset, its product (to find a renamed successor), folder, tile size (degrees)
+    ('cmems_mod_glo_phy-thetao_anfc_0.083deg_P1D-m', 'GLOBAL_ANALYSISFORECAST_PHY_001_024', 's', 5),
+    ('cmems_mod_bal_phy_anfc_P1D-m', 'BALTICSEA_ANALYSISFORECAST_PHY_003_006', 'sb', 1),
 ]
+
+
+def successor(product, old):
+    """A dataset renamed within its product: the daily-mean forecast with the sea's temperature (thetao)."""
+    import copernicusmarine
+    found = []
+    for p in copernicusmarine.describe(product_id=product).products:
+        for d in p.datasets:
+            i = d.dataset_id
+            if i == old or 'anfc' not in i or not i.endswith('P1D-m'):
+                continue
+            # Only a dataset that really has the sea's temperature.
+            names = {v.short_name for ver in d.versions for part in ver.parts for s in part.services for v in s.variables}
+            if 'thetao' in names:
+                found.append(i)
+    # The temperature's own dataset first, if the product splits them.
+    found.sort(key=lambda i: ('thetao' not in i, i))
+    return found[0] if found else None
 
 
 def fetch(dataset, start, end, target):
@@ -91,10 +109,19 @@ def main():
     today = dt.datetime.now(dt.timezone.utc).date()
     base = (today - dt.date(1970, 1, 1)).days
     summary = {}
-    for dataset, folder, size in SETS:
+    for dataset, product, folder, size in SETS:
         try:
             nc = os.path.join(tempfile.mkdtemp(), folder + '.nc')
-            fetch(dataset, today, today + dt.timedelta(days=days - 1), nc)
+            try:
+                fetch(dataset, today, today + dt.timedelta(days=days - 1), nc)
+            except Exception as e:
+                # Retired or renamed: the product's newest daily dataset instead, and say so in the log.
+                new = successor(product, dataset)
+                if not new:
+                    raise
+                print(folder, dataset, 'failed (', e, '), trying', new)
+                dataset = new
+                fetch(dataset, today, today + dt.timedelta(days=days - 1), nc)
             n, shape = cut(nc, os.path.join(out, folder), size, base)
             summary[folder] = {'dataset': dataset, 'tiles': n, 'shape': list(shape)}
             print(folder, n, 'tiles', shape)
