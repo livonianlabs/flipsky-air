@@ -33,3 +33,8 @@ Copernicus Marine account) and is skipped without them. Generated using E.U. Cop
 
 `ecmwf_rain.py` takes ECMWF's open ensemble probabilities (tpg1: at least 1 mm in 24 hours, 10 days, 0.25°) by byte
 ranges and cuts them into `rp/` (5° tiles). Source: ECMWF open data, CC BY 4.0.
+
+## Wind gusts worldwide
+
+`ecmwf_gust.py` takes 10fg (the strongest gust in each 3 hours, 0.25°, 3-72 h) from ECMWF's open high-resolution run
+and cuts it into `gu/` (5° tiles). Source: ECMWF open data, CC BY 4.0.

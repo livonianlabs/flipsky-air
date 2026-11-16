@@ -27,6 +27,9 @@ jobs:
       # The chance of rain by day worldwide (ECMWF open data): its own step too.
       - run: pip install eccodes && python ecmwf_rain.py site
         continue-on-error: true
+      # Wind gusts worldwide (ECMWF open data), likewise on their own.
+      - run: python ecmwf_gust.py site
+        continue-on-error: true
       # The sea's temperature (Copernicus Marine): skipped until the account's secrets are set.
       - run: pip install copernicusmarine && python sea_tiles.py site
         env:
