@@ -38,3 +38,8 @@ ranges and cuts them into `rp/` (5° tiles). Source: ECMWF open data, CC BY 4.0.
 
 `ecmwf_gust.py` takes 10fg (the strongest gust in each 3 hours, 0.25°, 3-72 h) from ECMWF's open high-resolution run
 and cuts it into `gu/` (5° tiles). Source: ECMWF open data, CC BY 4.0.
+
+## The world's beaches
+
+`beaches_world.py` adds the world's named beaches from OpenStreetMap (via Overture Maps' base theme) to `beaches/`,
+after `beaches.py`: about 37,000 outside the EU register. Beaches © OpenStreetMap contributors (ODbL), via Overture Maps.
