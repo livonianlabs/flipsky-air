@@ -26,6 +26,8 @@ DIRS = 16
 STEP_KM = 0.1
 REACH_KM = 20.0
 START_KM = 1.0
+# A resort's point is the middle of its grounds, often further in: the water sought up to here, else unknown.
+FAR_KM = 3.0
 
 
 def main():
@@ -77,10 +79,15 @@ def main():
                 fetch = [int(REACH_KM * 10)] * DIRS
             else:
                 inside = shapely.contains_xy(land, xs.ravel(), ys.ravel()).reshape(DIRS, len(steps))
-                fetch = []
-                for i in range(DIRS):
+                # The water's start: within 1 km, else within 3 km (the nearest water in any direction, plus 1 km).
+                water = ~inside[:, : int(FAR_KM / STEP_KM)]
+                start = START_KM
+                if not water[:, : int(START_KM / STEP_KM)].any():
+                    start = (int(np.argmax(water.any(axis=0))) + 1) * STEP_KM + START_KM if water.any() else 0
+                fetch = [] if start else None
+                for i in range(DIRS if start else 0):
                     row = inside[i]
-                    head = ~row[: int(START_KM / STEP_KM)]
+                    head = ~row[: int(start / STEP_KM)]
                     first = int(np.argmax(head)) if head.any() else -1
                     if first < 0:
                         fetch.append(0)
