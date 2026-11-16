@@ -1,0 +1,24 @@
+# By hand, about once a year: the bathing places (the EU register, then OpenStreetMap's beaches via Overture) and how
+# open each is to the sea in 16 directions (shelter.py), committed to beaches/ for the daily job to publish.
+name: beaches
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  beaches:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install duckdb pyogrio shapely numpy
+      - run: rm -rf beaches && python beaches.py beaches && python beaches_world.py beaches --release 2026-10-21.0
+      - run: python shelter.py beaches
+      - name: Commit
+        run: |
+          git add -A beaches
+          git -c user.name="Livonian Labs" -c user.email="livonianlabs@gmail.com" commit -q -m "Beaches and their shelter $(date -u +%F)" || echo "no change"
+          git push -q
