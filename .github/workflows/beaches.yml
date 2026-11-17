@@ -16,7 +16,7 @@ jobs:
           python-version: '3.12'
       - run: pip install duckdb pyogrio shapely numpy
       - run: rm -rf beaches && python beaches.py beaches && python beaches_world.py beaches --release 2026-10-21.0
-      - run: python shelter.py beaches
+      - run: python shelter.py beaches --release 2026-10-21.0
       - name: Commit
         run: |
           git add -A beaches
