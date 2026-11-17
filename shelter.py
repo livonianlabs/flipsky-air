@@ -26,7 +26,8 @@ DIRS = 16
 STEP_KM = 0.1
 REACH_KM = 20.0
 START_KM = 1.0
-# A resort's point is the middle of its grounds, often further in: the water sought up to here, else unknown.
+# A resort's point is the middle of its grounds, often further in: the water sought up to here (the point then
+# moved to that shore), else unknown.
 FAR_KM = 3.0
 
 
@@ -70,20 +71,32 @@ def main():
             shapely.prepare(land)
         for r in rows:
             lat, lon = r[1], r[2]
-            k = math.cos(math.radians(lat))
-            # All the ray points of the beach at once: DIRS × steps.
-            dy = np.outer(np.cos(angles), steps) / 111.0
-            dx = np.outer(np.sin(angles), steps) / (111.0 * max(k, .05))
-            ys, xs = lat + dy, lon + dx
+
+            def rays(lat, lon):
+                """The ray points (DIRS × steps) and which of them are on land."""
+                k = math.cos(math.radians(lat))
+                dy = np.outer(np.cos(angles), steps) / 111.0
+                dx = np.outer(np.sin(angles), steps) / (111.0 * max(k, .05))
+                return dy, dx, shapely.contains_xy(land, (lon + dx).ravel(), (lat + dy).ravel()).reshape(DIRS, len(steps))
+
             if land is None:
                 fetch = [int(REACH_KM * 10)] * DIRS
             else:
-                inside = shapely.contains_xy(land, xs.ravel(), ys.ravel()).reshape(DIRS, len(steps))
-                # The water's start: within 1 km, else within 3 km (the nearest water in any direction, plus 1 km).
-                water = ~inside[:, : int(FAR_KM / STEP_KM)]
+                dy, dx, inside = rays(lat, lon)
                 start = START_KM
+                water = ~inside[:, : int(FAR_KM / STEP_KM)]
                 if not water[:, : int(START_KM / STEP_KM)].any():
-                    start = (int(np.argmax(water.any(axis=0))) + 1) * STEP_KM + START_KM if water.any() else 0
+                    if water.any():
+                        # A resort's point is the middle of its grounds, often inland: moved to the nearest shore (the last
+                        # land before the nearest water), so the rays start at the beach and the maps open there.
+                        s = int(np.argmax(water.any(axis=0)))
+                        i = int(np.argmax(water[:, s]))
+                        shore = max(s - 1, 0)
+                        lat, lon = round(lat + dy[i, shore], 5), round(lon + dx[i, shore], 5)
+                        r[1], r[2] = lat, lon
+                        dy, dx, inside = rays(lat, lon)
+                    else:
+                        start = 0
                 fetch = [] if start else None
                 for i in range(DIRS if start else 0):
                     row = inside[i]
