@@ -1,0 +1,28 @@
+{
+ "base": 20778,
+ "days": 10,
+ "sets": {
+  "s": {
+   "dataset": "cmems_mod_glo_phy-thetao_anfc_0.083deg_P1D-m",
+   "tiles": 2008,
+   "shape": [
+    10,
+    2041,
+    4320
+   ]
+  },
+  "sb": {
+   "dataset": "cmems_mod_bal_phy_anfc_P1D-m",
+   "tiles": 126,
+   "shape": [
+    9,
+    774,
+    763
+   ]
+  },
+  "wv": {
+   "tiles": 1817
+  }
+ },
+ "source": "Generated using E.U. Copernicus Marine Service Information"
+}
