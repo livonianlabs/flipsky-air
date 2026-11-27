@@ -3,14 +3,16 @@
 usage: sea_extra.py <out dir> [--only level|ice]
   Needs CMEMS_USER and CMEMS_PASS (a free Copernicus Marine account); without them it says so and does nothing.
 
-Sea level, the Baltic's (storm surges, seiches), every 3 hours for 5 days:
-  cmems_mod_bal_phy_anfc_PT1H-i, sla (above the mean) -> <out>/lb/<lat>_<lon>.bin.gz, 1° tiles at about 1 nautical mile.
+Sea level, every 3 hours for 5 days, Europe's seas in 1° tiles (the first model to give a tile its sea keeps it):
+  the Baltic's (storm surges, seiches): cmems_mod_bal_phy_anfc_PT1H-i, sla (above the mean), about 1 nautical mile;
+  the North-West shelf (tides), Iberia-Biscay, the Black Sea: their hourly zos, less the model's mean over the
+  5 days, so all read from about 0 -> <out>/lb/<lat>_<lon>.bin.gz.
 Sea ice, daily, concentration and thickness:
   the world's polar seas: cmems_mod_glo_phy_anfc_0.083deg_P1D-m, averaged to 0.25°, 7 days -> <out>/iw/, 5° tiles;
   the Baltic: cmems_mod_bal_phy_anfc_P1D-m, 5 days -> <out>/ib/, 1° tiles.
 
 Tiles in sea_motion.py's 'SM' format:
-  level: one field, metres × 50 + 127 (2 cm steps, ±2.54 m);
+  level: one field, metres × 25 + 127 (4 cm steps, ±5.08 m: the Channel's tides);
   ice: concentration × 250 (0..1), thickness in metres × 50 (to 5.08 m); open water and land are 255 (no tile when a
   tile has no ice at all).
 
@@ -27,6 +29,11 @@ import numpy as np
 from sea_motion import coarsen, coarsen_axis, read, write_tiles
 
 LEVEL_BAL = 'cmems_mod_bal_phy_anfc_PT1H-i'
+LEVEL_SEAS = [
+    'cmems_mod_nws_phy-ssh_anfc_1.5km-2D_PT1H-i',
+    'cmems_mod_ibi_phy_anfc_0.027deg-2D_PT1H-m',
+    'cmems_mod_blk_phy-ssh_anfc_2.5km_PT1H-m',
+]
 ICE_WORLD = 'cmems_mod_glo_phy_anfc_0.083deg_P1D-m'
 ICE_BAL = 'cmems_mod_bal_phy_anfc_P1D-m'
 
@@ -47,7 +54,7 @@ def subset(dataset, variables, start, end, south=None, north=None):
 
 
 def q_level(m):
-    return np.where(np.isfinite(m), np.clip(np.round(m * 50) + 127, 0, 254), 255).astype(np.uint8)
+    return np.where(np.isfinite(m), np.clip(np.round(m * 25) + 127, 0, 254), 255).astype(np.uint8)
 
 
 def q_ice(c, h):
@@ -61,23 +68,37 @@ def unix_h(t):
     return int(t.replace(tzinfo=dt.timezone.utc).timestamp() // 3600)
 
 
-def level(out, today):
-    t0 = dt.datetime.combine(today, dt.time())
+def level_of(ds, var, t0):
+    """One model's sea level every 3 hours for 5 days (fewer if its forecast ends sooner)."""
     frames, lat, lon = [], None, None
     for i in range(5 * 8):
         when = t0 + dt.timedelta(hours=3 * i)
         try:
-            _, lat, lon, v = read(subset(LEVEL_BAL, ['sla'], when, when), ['sla'])
+            _, lat, lon, v = read(subset(ds, [var], when, when), [var])
         except Exception as e:
             if not frames:
                 raise
-            print('lb ends after', i, 'steps:', str(e)[:120])
+            print('lb', ds, 'ends after', i, 'steps:', str(e)[:120])
             break
-        frames.append(v['sla'][0])
-    a = np.stack(frames)
-    n = write_tiles(os.path.join(out, 'lb'), 1, unix_h(t0), 3, lat, lon, [q_level(a)])
-    print('lb', n, a.shape, float(np.nanmin(a)), float(np.nanmax(a)))
-    return [{'dataset': LEVEL_BAL, 'tiles': n, 'shape': list(a.shape)}]
+        frames.append(v[var][0])
+    return lat, lon, np.stack(frames)
+
+
+def level(out, today):
+    t0 = dt.datetime.combine(today, dt.time())
+    summary = []
+    for ds, var in [(LEVEL_BAL, 'sla')] + [(s, 'zos') for s in LEVEL_SEAS]:
+        try:
+            lat, lon, a = level_of(ds, var, t0)
+            if var == 'zos':
+                # The model's own datum: its mean over these days taken off, as the Baltic's sla is.
+                a = a - np.nanmean(a)
+            n = write_tiles(os.path.join(out, 'lb'), 1, unix_h(t0), 3, lat, lon, [q_level(a)])
+            print('lb', ds, n, a.shape, float(np.nanmin(a)), float(np.nanmax(a)))
+            summary.append({'dataset': ds, 'tiles': n, 'shape': list(a.shape)})
+        except Exception as e:
+            print('lb', ds, 'failed:', e)
+    return summary
 
 
 def ice(out, today):
