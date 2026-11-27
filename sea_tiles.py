@@ -5,6 +5,9 @@ usage: sea_tiles.py <out dir> [--days N]
   Global: cmems_mod_glo_phy-thetao_anfc_0.083deg_P1D-m (about 9 km, daily means, 10 days ahead) -> <out>/s/<lat>_<lon>.bin.gz,
     5-degree tiles (lower-left corner, multiples of 5).
   Baltic: cmems_mod_bal_phy_anfc_P1D-m (about 2 km) -> <out>/sb/<lat>_<lon>.bin.gz, 1-degree tiles; the app prefers them.
+  Europe's other seas, finer than the world's -> <out>/sr/<lat>_<lon>.bin.gz, 1-degree tiles, the first model to give a
+    tile its sea keeps it: the North-West shelf (about 1.5 km), Iberia-Biscay-Ireland (2 km), the Black Sea (2.5 km),
+    the Mediterranean (4 km).
 
 Tile format (little-endian), gzipped:
   'SW' 1 (version), int32 base (Unix days of day 0), uint8 days, uint8 rows, uint8 cols,
@@ -32,6 +35,10 @@ SETS = [
     # dataset, its product (to find a renamed successor), folder, tile size (degrees)
     ('cmems_mod_glo_phy-thetao_anfc_0.083deg_P1D-m', 'GLOBAL_ANALYSISFORECAST_PHY_001_024', 's', 5),
     ('cmems_mod_bal_phy_anfc_P1D-m', 'BALTICSEA_ANALYSISFORECAST_PHY_003_006', 'sb', 1),
+    ('cmems_mod_nws_phy-tem_anfc_1.5km-3D_P1D-m', 'NWSHELF_ANALYSISFORECAST_PHY_004_013', 'sr', 1),
+    ('cmems_mod_ibi_phy_anfc_0.027deg-3D_P1D-m', 'IBI_ANALYSISFORECAST_PHY_005_001', 'sr', 1),
+    ('cmems_mod_blk_phy-temp_anfc_2.5km_P1D-m', 'BLKSEA_ANALYSISFORECAST_PHY_007_001', 'sr', 1),
+    ('cmems_mod_med_phy-tem_anfc_4.2km_P1D-m', 'MEDSEA_ANALYSISFORECAST_PHY_006_013', 'sr', 1),
 ]
 
 
@@ -94,10 +101,14 @@ def cut(path, folder, size, base):
             block = q[:, rows[0]:rows[-1] + 1, cols[0]:cols[-1] + 1]
             if (block == 255).all():
                 continue
+            target = os.path.join(folder, f'{la}_{lo}.bin.gz')
+            # Several models share a folder: the first one there keeps the tile.
+            if os.path.exists(target):
+                continue
             assert block.shape[1] < 256 and block.shape[2] < 256, block.shape
             head = b'SW' + struct.pack('<BiBBBffff', 1, base, block.shape[0], block.shape[1], block.shape[2],
                                        float(lat[rows[0]]), float(lon[cols[0]]), lat_step, lon_step)
-            with gzip.open(os.path.join(folder, f'{la}_{lo}.bin.gz'), 'wb', compresslevel=9) as f:
+            with gzip.open(target, 'wb', compresslevel=9) as f:
                 f.write(head + block.tobytes())
             count += 1
     return count, a.shape
@@ -180,7 +191,7 @@ def main():
                 dataset = new
                 fetch(dataset, today, today + dt.timedelta(days=days - 1), nc)
             n, shape = cut(nc, os.path.join(out, folder), size, base)
-            summary[folder] = {'dataset': dataset, 'tiles': n, 'shape': list(shape)}
+            summary.setdefault(folder, []).append({'dataset': dataset, 'tiles': n, 'shape': list(shape)})
             print(folder, n, 'tiles', shape)
         except Exception as e:
             print(folder, 'failed:', e)
