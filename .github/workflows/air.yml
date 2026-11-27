@@ -35,6 +35,9 @@ jobs:
         env:
           CMEMS_USER: ${{ secrets.CMEMS_USER }}
           CMEMS_PASS: ${{ secrets.CMEMS_PASS }}
+      # Precipitation for the map, finer than MET Norway's points (DWD ICON-EU, ECMWF IFS): its own step too.
+      - run: python precip_tiles.py site
+        continue-on-error: true
       # The sea in motion for the map (currents, waves): its own step, so a failure leaves the rest alone.
       - run: python sea_motion.py site
         continue-on-error: true
