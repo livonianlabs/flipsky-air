@@ -7,6 +7,8 @@ Sea level, every 3 hours for 5 days, Europe's seas in 1° tiles (the first model
   the Baltic's (storm surges, seiches): cmems_mod_bal_phy_anfc_PT1H-i, sla (above the mean), about 1 nautical mile;
   the North-West shelf (tides), Iberia-Biscay, the Black Sea: their hourly zos, less the model's mean over the
   5 days, so all read from about 0 -> <out>/lb/<lat>_<lon>.bin.gz.
+  The Mediterranean: its model gives sea level only as daily means (cmems_mod_med_phy-ssh_anfc_4.2km_P1D-m, zos, its
+  mean over the days taken off as well): the same tiles, a step a day, where the others have no sea.
 Sea ice, daily, concentration and thickness:
   the world's polar seas: cmems_mod_glo_phy_anfc_0.083deg_P1D-m, averaged to 0.25°, 7 days -> <out>/iw/, 5° tiles;
   the Baltic: cmems_mod_bal_phy_anfc_P1D-m, 5 days -> <out>/ib/, 1° tiles.
@@ -34,6 +36,7 @@ LEVEL_SEAS = [
     'cmems_mod_ibi_phy_anfc_0.027deg-2D_PT1H-m',
     'cmems_mod_blk_phy-ssh_anfc_2.5km_PT1H-m',
 ]
+LEVEL_MED = 'cmems_mod_med_phy-ssh_anfc_4.2km_P1D-m'
 ICE_WORLD = 'cmems_mod_glo_phy_anfc_0.083deg_P1D-m'
 ICE_BAL = 'cmems_mod_bal_phy_anfc_P1D-m'
 
@@ -98,6 +101,15 @@ def level(out, today):
             summary.append({'dataset': ds, 'tiles': n, 'shape': list(a.shape)})
         except Exception as e:
             print('lb', ds, 'failed:', e)
+    # The Mediterranean, daily (written last: where an hourly model has a tile, it keeps it).
+    try:
+        times, lat, lon, v = read(subset(LEVEL_MED, ['zos'], t0, t0 + dt.timedelta(days=5)), ['zos'])
+        a = v['zos'] - np.nanmean(v['zos'])
+        n = write_tiles(os.path.join(out, 'lb'), 1, times[0], 24, lat, lon, [q_level(a)])
+        print('lb', LEVEL_MED, n, a.shape, float(np.nanmin(a)), float(np.nanmax(a)))
+        summary.append({'dataset': LEVEL_MED, 'tiles': n, 'shape': list(a.shape)})
+    except Exception as e:
+        print('lb', LEVEL_MED, 'failed:', e)
     return summary
 
 
