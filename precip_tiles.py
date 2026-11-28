@@ -7,9 +7,10 @@ usage: precip_tiles.py <out dir> [--only eu|world]
   The world: ECMWF's open data IFS (data.ecmwf.int, 0.25°, CC BY 4.0), the newest 00 UTC run, every 3 hours for 6 days
     -> <out>/pw/<lat>_<lon>.bin.gz, 5° tiles.
 
-Tiles in sea_motion.py's 'SM' format, two fields:
+Tiles in sea_motion.py's 'SM' format, two fields (the world's three):
   the hour's precipitation as round(sqrt(mm/h) × 40) (0.1 mm/h -> 13, 1 -> 40, 10 -> 126, up to about 40 mm/h);
-  the air's temperature at 2 m as round((°C + 60) × 2).
+  the air's temperature at 2 m as round((°C + 60) × 2);
+  the world's only: sea-level pressure as round((hPa - 940) × 2) (940 to 1067 hPa).
 A step holds what fell in the hours up to it (an hour for ICON-EU, three for IFS), as an hourly rate.
 
 Sources: Deutscher Wetterdienst (DWD) open data; ECMWF open data, CC BY 4.0.
@@ -65,6 +66,10 @@ def q_rate(mm_h):
 
 def q_temp(c):
     return np.where(np.isfinite(c), np.clip(np.round((c + 60) * 2), 0, 254), 255).astype(np.uint8)
+
+
+def q_pres(hpa):
+    return np.where(np.isfinite(hpa), np.clip(np.round((hpa - 940) * 2), 0, 254), 255).astype(np.uint8)
 
 
 def unix_h(t):
@@ -125,21 +130,22 @@ def world(out):
         rows = [json.loads(l) for l in get(base + '.index').decode().splitlines() if l.strip()]
         out = {}
         for r in rows:
-            if r.get('param') in ('tp', '2t') and r.get('param') not in out:
+            if r.get('param') in ('tp', '2t', 'msl') and r.get('param') not in out:
                 out[r['param']] = decode(get(base + '.grib2', (r['_offset'], r['_offset'] + r['_length'] - 1)))
         return out
 
     prev = fields(0)['tp'][0]
-    rates, temps = [], []
+    rates, temps, press = [], [], []
     lat = lon = None
     for step in range(3, 145, 3):
         f = fields(step)
-        (acc, lat, lon), (t2, _, _) = f['tp'], f['2t']
+        (acc, lat, lon), (t2, _, _), (msl, _, _) = f['tp'], f['2t'], f['msl']
         rates.append(np.clip(acc - prev, 0, None) * 1000 / 3)
         prev = acc
         temps.append(t2 - 273.15)
-    r, t = np.stack(rates), np.stack(temps)
-    n = write_tiles(os.path.join(out, 'pw'), 5, unix_h(run) + 3, 3, lat, lon, [q_rate(r), q_temp(t)])
+        press.append(msl / 100)
+    r, t, pr = np.stack(rates), np.stack(temps), np.stack(press)
+    n = write_tiles(os.path.join(out, 'pw'), 5, unix_h(run) + 3, 3, lat, lon, [q_rate(r), q_temp(t), q_pres(pr)])
     print('pw', run, n)
     return {'model': 'ECMWF IFS', 'run': run.isoformat(), 'tiles': n, 'shape': list(r.shape)}
 
