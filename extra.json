@@ -1,0 +1,90 @@
+{
+ "date": "2026-11-28",
+ "sets": {
+  "level": [
+   {
+    "dataset": "cmems_mod_bal_phy_anfc_PT1H-i",
+    "tiles": 125,
+    "shape": [
+     40,
+     774,
+     763
+    ]
+   },
+   {
+    "dataset": "cmems_mod_nws_phy-ssh_anfc_1.5km-2D_PT1H-i",
+    "tiles": 358,
+    "shape": [
+     40,
+     1240,
+     958
+    ]
+   },
+   {
+    "dataset": "cmems_mod_ibi_phy_anfc_0.027deg-2D_PT1H-m",
+    "tiles": 360,
+    "shape": [
+     40,
+     1078,
+     871
+    ]
+   },
+   {
+    "dataset": "cmems_mod_blk_phy-ssh_anfc_2.5km_PT1H-m",
+    "tiles": 80,
+    "shape": [
+     40,
+     274,
+     591
+    ]
+   },
+   {
+    "dataset": "cmems_mod_med_phy-ssh_anfc_4.2km_P1D-m",
+    "tiles": 284,
+    "shape": [
+     6,
+     380,
+     1287
+    ]
+   }
+  ],
+  "ice": [
+   {
+    "dataset": "cmems_mod_glo_phy_anfc_0.083deg_P1D-m",
+    "lat": [
+     40,
+     90
+    ],
+    "tiles": 353,
+    "shape": [
+     7,
+     200,
+     1440
+    ]
+   },
+   {
+    "dataset": "cmems_mod_glo_phy_anfc_0.083deg_P1D-m",
+    "lat": [
+     -80,
+     -45
+    ],
+    "tiles": 206,
+    "shape": [
+     7,
+     140,
+     1440
+    ]
+   },
+   {
+    "dataset": "cmems_mod_bal_phy_anfc_P1D-m",
+    "tiles": 34,
+    "shape": [
+     5,
+     774,
+     763
+    ]
+   }
+  ]
+ },
+ "source": "Generated using E.U. Copernicus Marine Service Information"
+}

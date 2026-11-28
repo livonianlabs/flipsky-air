@@ -1,0 +1,70 @@
+{
+ "base": 20785,
+ "days": 10,
+ "sets": {
+  "s": [
+   {
+    "dataset": "cmems_mod_glo_phy-thetao_anfc_0.083deg_P1D-m",
+    "tiles": 2008,
+    "shape": [
+     10,
+     2041,
+     4320
+    ]
+   }
+  ],
+  "sb": [
+   {
+    "dataset": "cmems_mod_bal_phy_anfc_P1D-m",
+    "tiles": 125,
+    "shape": [
+     9,
+     774,
+     763
+    ]
+   }
+  ],
+  "sr": [
+   {
+    "dataset": "cmems_mod_nws_phy-tem_anfc_1.5km-3D_P1D-m",
+    "tiles": 370,
+    "shape": [
+     7,
+     1240,
+     958
+    ]
+   },
+   {
+    "dataset": "cmems_mod_ibi_phy_anfc_0.027deg-3D_P1D-m",
+    "tiles": 360,
+    "shape": [
+     10,
+     1078,
+     871
+    ]
+   },
+   {
+    "dataset": "cmems_mod_blk_phy-temp_anfc_2.5km_P1D-m",
+    "tiles": 80,
+    "shape": [
+     10,
+     274,
+     591
+    ]
+   },
+   {
+    "dataset": "cmems_mod_med_phy-tem_anfc_4.2km_P1D-m",
+    "tiles": 284,
+    "shape": [
+     10,
+     380,
+     1287
+    ]
+   }
+  ],
+  "wv": {
+   "tiles": 1819
+  }
+ },
+ "source": "Generated using E.U. Copernicus Marine Service Information"
+}

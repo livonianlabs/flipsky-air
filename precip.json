@@ -1,0 +1,25 @@
+{
+ "sets": {
+  "eu": {
+   "model": "ICON-EU",
+   "run": "2026-11-28T06:00:00",
+   "tiles": 180,
+   "shape": [
+    72,
+    657,
+    1377
+   ]
+  },
+  "world": {
+   "model": "ECMWF IFS",
+   "run": "2026-11-28T00:00:00",
+   "tiles": 2592,
+   "shape": [
+    48,
+    721,
+    1440
+   ]
+  }
+ },
+ "source": "DWD ICON-EU open data; ECMWF open data (CC BY 4.0)"
+}
